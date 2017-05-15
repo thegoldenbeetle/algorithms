@@ -7,6 +7,7 @@
 #include <QtGui>
 #include <QErrorMessage>
 #include <vector>
+#include "bridge.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -46,19 +47,26 @@ bool MainWindow::CorrectMatrix(std::vector<std::vector<int> > matrix)
 void MainWindow::Click()
 {
     int numb = ui->AdjacencyMatrix->rowCount();
+    graph_t tree; //наш граф
     std::vector<std::vector<int> > matrix(numb, std::vector<int> (numb, 0));
     QString str;
+    for (int i = 0; i < numb; i++)
+    {
+        boost::add_vertex(tree);
+    }
     for (int i = 0; i < numb; i++)
     {
         for (int j = 0; j < numb; j++)
         {
             str = ui->AdjacencyMatrix->item(i, j)->text();
+            if (str.toInt() != 0)
+                boost::add_edge(i, j, str.toInt(), tree); //забиваем в tree связи i и j вершин
             matrix[i][j] = str.toInt();
         }
     }
     if (CorrectMatrix(matrix))
     {
-        ui->widget->setData(matrix);
+        ui->widget->setData(tree);
         ui->widget->update();
     }
     else
