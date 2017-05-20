@@ -11,6 +11,7 @@ graphview::graphview(QWidget *parent) : QWidget(parent)
 {
 }
 
+//рисуем черную рамочку где полотно для рисования
 void graphview::imagegraph()
 {
     QPainter painter(this);
@@ -19,6 +20,7 @@ void graphview::imagegraph()
     painter.drawRect(0,0,size().width()-2,size().height()-2);
 }
 
+//рисуем вершину графа в указанных координатах и с указанным номером
 void graphview::drawNode(int x, int y, QString a)
 {
     QPainter painter(this);
@@ -29,6 +31,7 @@ void graphview::drawNode(int x, int y, QString a)
     painter.drawText(x-9,y+2,a);
 }
 
+//рисуем линию с указанными координатами начала, конца и цвета
 void graphview::drawLine(int x0, int y0, int x, int y, QColor color)
 {
     QPainter painter(this);
@@ -36,38 +39,14 @@ void graphview::drawLine(int x0, int y0, int x, int y, QColor color)
     painter.drawLine(x0,y0,x,y);
 }
 
-/*void graphview::drawArrows(int x, int y,)
+std::vector<graphview::Node_> graphview::drawNodes()
 {
-    drawLine(x, y, )
-    drawLine(x, y, )
-}*/
-/*void graphview::paint(rbtree *b, int x0, int y0, float alpha, float r)
-{
-    if (b!=nullptr && b->key!=0)
-    {
-        drawNode(x0-3,y0-3,QString::number(b->key), b->color);
-       if (b->left!=nullptr && b->left->key!=0)
-        {
-           drawLine(x0-3,y0+3,x0-r*sin(alpha),y0+r*cos(alpha));
-           paint(b->left,x0-r*sin(alpha),y0+r*cos(alpha), alpha/1.8, r/1.2);
-        }
-        if (b->right!=nullptr && b->right->key!=0)
-        {
-            drawLine(x0+3,y0+3,x0+r*sin(alpha),y0+r*cos(alpha));
-            paint(b->right,x0+r*sin(alpha),y0+r*cos(alpha), alpha/1.8, r/1.2);
-        }
-    }
-}*/
-
-void graphview::paintEvent(QPaintEvent *event)
-{
-    imagegraph();
     float r = 160;
     float alpha = (2*3.1416)/float(boost::num_vertices(d));
     float alpha0 = alpha;
-    std::vector<Node_> nodes;
-   // boost:num_vertices(d);
     vertex_iterator v, v_end;
+    std::vector<Node_> nodes;
+    //рисуем все вешины графа, располагая их по окружности
     for (boost::tie(v, v_end) = vertices(d); v != v_end; ++v)
     {
         float x0 = r*sin(alpha)+ 210;
@@ -76,16 +55,14 @@ void graphview::paintEvent(QPaintEvent *event)
         nodes.push_back({x0, y0});
         alpha += alpha0;
     }
+    return nodes;
+}
 
-/*    for (int i = 0; i < boost::num_vertices(d); i++)
-    {
-        float x0 = r*sin(alpha)+ 210;
-        float y0 = r*cos(alpha) + 180;
-        drawNode(x0, y0, QString::number(*d));
-        nodes.push_back({x0, y0});
-        alpha += alpha0;
-    }*/
+void graphview::drawLines(std::vector<Node_> nodes)
+{
     adjacency_iterator u, u_end;
+    vertex_iterator v, v_end;
+    //рисуем линии между необходимыми вершинами
     for (boost::tie(v, v_end) = vertices(d); v != v_end; ++v)
     {
         for (boost::tie(u, u_end) = boost::adjacent_vertices(*v, d); u != u_end; ++u)
@@ -95,13 +72,13 @@ void graphview::paintEvent(QPaintEvent *event)
             float x2 = nodes[*v].x;
             float y2 = nodes[*v].y;
             drawLine(x1 + 3, y1 + 3, x2 + 3, y2 + 3, Qt::black);
-           /* if (d[j][i] == 0)
-                {
-                    drawArrows(x2 + 3, y2 + 2, );
-                }
-            }*/
         }
     }
+}
+
+void graphview::drawBridges(std::vector<Node_> nodes)
+{
+    //ищем мосты и рисуем ребра-мосты красным цветом
     auto bridges = bridge_find(d);
     for (auto p : bridges)
     {
@@ -110,7 +87,13 @@ void graphview::paintEvent(QPaintEvent *event)
         float x2 = nodes[p.second].x;
         float y2 = nodes[p.second].y;
         drawLine(x1 + 3, y1 + 3, x2 + 3, y2 + 3, Qt::red);
-        std::cout << "(" << p.first << "," << p.second << ")\n";
     }
-    std::cout << "\n";
+}
+
+void graphview::paintEvent(QPaintEvent *event)
+{
+    imagegraph();
+    std::vector<Node_> nodes = drawNodes();
+    drawLines(nodes);
+    drawBridges(nodes);
 }

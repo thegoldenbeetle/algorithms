@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -18,8 +20,8 @@ public:
 private slots:
     void Click();
     void on_EnterNodesNumb_clicked();
-    bool CorrectMatrix(std::vector<std::vector<int> > matrix);
     void ErrorMsg(QString s);
+    void on_AdjacencyMatrix_itemSelectionChanged();
 
 private:
     Ui::MainWindow *ui;

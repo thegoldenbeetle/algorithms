@@ -31,55 +31,44 @@ void MainWindow::ErrorMsg(QString s)
     errorMessage.exec();
 }
 
-bool MainWindow::CorrectMatrix(std::vector<std::vector<int> > matrix)
-{
-    for (int i = 0; i < matrix.size(); i++)
-        for (int j = 0; j < matrix.size(); j++)
-        {
-            if ((i == j) && (matrix[i][j] != 0))
-                return false;
-            if (matrix[i][j] < 0)
-                return false;
-        }
-    return true;
-}
-
 void MainWindow::Click()
 {
     int numb = ui->AdjacencyMatrix->rowCount();
-    graph_t tree; //наш граф
-    std::vector<std::vector<int> > matrix(numb, std::vector<int> (numb, 0));
+    graph_t graph; //наш граф
+
     QString str;
+
+    //забиваем вершины
     for (int i = 0; i < numb; i++)
     {
-        boost::add_vertex(tree);
+        boost::add_vertex(graph);
     }
+
+    //забиваем связи между вершинами
     for (int i = 0; i < numb; i++)
     {
         for (int j = 0; j < numb; j++)
         {
-            str = ui->AdjacencyMatrix->item(i, j)->text();
-            if (str.toInt() != 0)
-                boost::add_edge(i, j, str.toInt(), tree); //забиваем в tree связи i и j вершин
-            matrix[i][j] = str.toInt();
+            if (i < j)
+            {
+                str = ui->AdjacencyMatrix->item(i, j)->text();
+                if (str.toInt() != 0)
+                {
+                    boost::add_edge(i, j, str.toInt(), graph); //забиваем в tree связи i и j вершин
+                    boost::add_edge(j, i, str.toInt(), graph); //забиваем в tree связи j и i вершин
+                }
+            }
         }
     }
-    if (CorrectMatrix(matrix))
-    {
-        ui->widget->setData(tree);
-        ui->widget->update();
-    }
-    else
-    {
-        ErrorMsg("Ошибка! Матрица смежности введена некорректно!");
-    }
+    ui->widget->setData(graph);
+    ui->widget->update();
 }
 
-
+//действия по вводу числа вершин
 void MainWindow::on_EnterNodesNumb_clicked()
 {
     int nodes_numb = (ui->NodesNumb->text()).toInt();
-    if (nodes_numb > 0)
+    if ((nodes_numb > 0) && (nodes_numb <= 15))
     {
         ui->AdjacencyMatrix->setColumnCount(nodes_numb);
         ui->AdjacencyMatrix->setRowCount(nodes_numb);
@@ -87,8 +76,18 @@ void MainWindow::on_EnterNodesNumb_clicked()
         {
             for (int i = 0; i < nodes_numb; i++)
             {
-                QTableWidgetItem *newItem = new QTableWidgetItem( "0" );
-                ui->AdjacencyMatrix->setItem( i, j, newItem );
+                if (i >= j)
+                {
+                    QTableWidgetItem *newItem = new QTableWidgetItem(QLatin1String("0"));
+                    newItem->setFlags(newItem->flags() & ~Qt::ItemIsEditable);
+                    ui->AdjacencyMatrix->setItem(i, j, newItem);
+                    ui->AdjacencyMatrix->item(i, j)->setBackgroundColor(Qt::lightGray);
+                }
+                else
+                {
+                    QTableWidgetItem *newItem = new QTableWidgetItem( "0" );
+                    ui->AdjacencyMatrix->setItem( i, j, newItem );
+                }
             }
             ui->AdjacencyMatrix->setColumnWidth(j, 20);
             ui->AdjacencyMatrix->setRowHeight(j, 20);
@@ -96,6 +95,22 @@ void MainWindow::on_EnterNodesNumb_clicked()
     }
     else
     {
-        ErrorMsg("Ошибка! Количество вершин в графе должно быть положительным!");
+        ErrorMsg("Ошибка! Количество вершин в графе должно быть положительным и меньше 15!");
     }
 }
+
+
+void MainWindow::on_AdjacencyMatrix_itemSelectionChanged()
+{
+    for (int i = 0; i < ui->AdjacencyMatrix->rowCount(); i++)
+        for (int j = 0; j < ui->AdjacencyMatrix->rowCount(); j++)
+        {
+            if (i < j)
+            {
+                if ((ui->AdjacencyMatrix->item(i, j)->text()).toInt() < 0)
+                    ErrorMsg("Ошибка! Значение вес ребра должен быть положительным!");
+                ui->AdjacencyMatrix->item(j, i)->setText(ui->AdjacencyMatrix->item(i, j)->text());
+            }
+        }
+}
+

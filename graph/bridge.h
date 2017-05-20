@@ -15,10 +15,10 @@ struct dfs_node {
   bool id = false;
 };
 
-std::vector<std::pair<vertex_descriptor, vertex_descriptor>> bridge_find(graph_t tree);
+std::vector<std::pair<vertex_descriptor, vertex_descriptor>> bridge_find(graph_t graph);
 
-void dfs_support(vertex_descriptor v, graph_t  &tree
-                 , std::vector<dfs_node> &dfstree, size_t &time
-                 , std::vector<std::pair<vertex_descriptor, vertex_descriptor> > &res);
+void dfs_support(vertex_descriptor v, graph_t  &graph
+                 , std::vector<dfs_node> &dfsgraph, size_t &time
+                 , std::vector<std::pair<vertex_descriptor, vertex_descriptor> > &res, vertex_descriptor pred);
 
 #endif // BRIDGE_H
